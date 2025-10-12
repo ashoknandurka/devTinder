@@ -19,9 +19,9 @@ app.post("/signup", async (req, res) => {
 });
 
 app.get("/user", userAuth, async (req, res) => {
-  const userEmail = req.body.email;
+  const userEmail = req.body.emailId;
   try {
-    const users = await User.find({ email: userEmail });
+    const users = await User.find({ emailId: userEmail });
     if (users.length === 0) {
       return res.status(404).send("User not found with the given email");
     } else {

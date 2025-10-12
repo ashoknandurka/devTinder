@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
@@ -13,18 +14,24 @@ const userSchema = new mongoose.Schema(
       minLength: 3,
       maxLength: 50,
     },
-    email: {
+    emailId: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
+      validate: {
+        validator: (value) => validator.isEmail(value),
+        message: "Invalid email",
+      },
     },
     password: {
       type: String,
       required: true,
-      minLength: 4,
-      maxLength: 12,
+      validate: {
+        validator: (value) => validator.isStrongPassword(value),
+        message: "Weak password",
+      },
     },
     age: {
       type: Number,
@@ -41,8 +48,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
+      validate: {
+        validator: (value) => validator.isURL(value),
+        message: "Invalid URL",
+      },
     },
-    about: { type: String, maxLength: 500 },
+    about: {
+      type: String,
+      maxLength: 500,
+    },
     skills: {
       type: [String],
       validate: {
