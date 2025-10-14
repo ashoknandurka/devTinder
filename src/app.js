@@ -3,18 +3,52 @@ const express = require("express");
 const { adminAuth, userAuth } = require("./middlewares/auth");
 const connectionDB = require("./config/database");
 const User = require("./models/user");
+const { validateSignupData } = require("./utils/validate");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
 const app = express();
 const port = 7777;
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
   try {
+    validateSignupData(req);
+    const { firstName, lastName, emailId, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: hashedPassword,
+    });
     await user.save();
     res.send("User signed up successfully...!");
   } catch (error) {
-    res.status(400).send("Error signing up user" + error.message);
+    res.status(400).send("ERROR : " + error.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    if (!validator.isEmail(emailId)) {
+      throw new Error("Invalid email address.");
+    }
+    if (!password) {
+      throw new Error("Password is required.");
+    }
+    const user = await User.findOne({ emailId });
+    if (!user) {
+      return res.status(404).send("Invalid credentials");
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).send("Invalid credentials");
+    }
+    res.send("Login successful");
+  } catch (error) {
+    res.status(400).send("ERROR : " + error.message);
   }
 });
 
