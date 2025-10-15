@@ -6,10 +6,13 @@ const User = require("./models/user");
 const { validateSignupData } = require("./utils/validate");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const app = express();
 const port = 7777;
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   try {
@@ -46,7 +49,27 @@ app.post("/login", async (req, res) => {
     if (!isMatch) {
       return res.status(401).send("Invalid credentials");
     }
+    const token = jwt.sign({ _id: user._id }, "devTinder@123");
+    res.cookie("token", token);
     res.send("Login successful");
+  } catch (error) {
+    res.status(400).send("ERROR : " + error.message);
+  }
+});
+
+app.get("/profile", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+    const { token } = cookies;
+    if (!token) {
+      return res.status(401).send("Access denied. No token provided.");
+    }
+    const decoded = jwt.verify(token, "devTinder@123");
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    res.send(user);
   } catch (error) {
     res.status(400).send("ERROR : " + error.message);
   }
