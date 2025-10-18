@@ -1,6 +1,6 @@
 const express = require("express");
 
-const { adminAuth, userAuth } = require("./middlewares/auth");
+const { userAuth } = require("./middlewares/auth");
 const connectionDB = require("./config/database");
 const User = require("./models/user");
 const { validateSignupData } = require("./utils/validate");
@@ -45,31 +45,33 @@ app.post("/login", async (req, res) => {
     if (!user) {
       return res.status(404).send("Invalid credentials");
     }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    const isPasswordValid = await user.validatePassword(password);
+    if (!isPasswordValid) {
       return res.status(401).send("Invalid credentials");
     }
-    const token = jwt.sign({ _id: user._id }, "devTinder@123");
-    res.cookie("token", token);
+    const token = await user.getJWT();
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    });
     res.send("Login successful");
   } catch (error) {
     res.status(400).send("ERROR : " + error.message);
   }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    const cookies = req.cookies;
-    const { token } = cookies;
-    if (!token) {
-      return res.status(401).send("Access denied. No token provided.");
-    }
-    const decoded = jwt.verify(token, "devTinder@123");
-    const user = await User.findById(decoded._id);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
+    const user = req.user;
     res.send(user);
+  } catch (error) {
+    res.status(400).send("ERROR : " + error.message);
+  }
+});
+
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(`${user.firstName} made a connection request !`);
   } catch (error) {
     res.status(400).send("ERROR : " + error.message);
   }
