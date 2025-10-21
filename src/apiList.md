@@ -12,10 +12,8 @@
 
 # connectionRouter
 
--POST -/request/send/interest/:userId
--POST -/request/send/ignore/:userId
--POST -/request/review/rejected/:reqId
--POST -/request/review/accepted/:reqId
+-POST -/request/send/:status/:userId
+-POST -/request/review/:status/:requestId
 
 # UserRouter
 
