@@ -41,10 +41,10 @@ requestRoutes.post(
         status: status,
       });
 
-      await connectionRequest.save();
+      const data = await connectionRequest.save();
       res.json({
         message: `Request sent to ${toUser.firstName} by ${user.firstName} with status ${status}`,
-        connectionRequest,
+        data,
       });
     } catch (error) {
       res.status(400).send("ERROR : " + error.message);
@@ -78,11 +78,11 @@ requestRoutes.post(
       }
 
       connectionRequest.status = status;
-      await connectionRequest.save();
+      const data = await connectionRequest.save();
 
       res.json({
         message: `Request ${status} by ${loggedInUser.firstName}`,
-        connectionRequest,
+        data,
       });
     } catch (error) {
       res.status(400).send("ERROR : " + error.message);
