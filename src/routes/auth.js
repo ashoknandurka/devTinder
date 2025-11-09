@@ -17,8 +17,12 @@ authRoutes.post("/signup", async (req, res) => {
       emailId,
       password: hashedPassword,
     });
-    await user.save();
-    res.send("User signed up successfully...!");
+    const savedUser = await user.save();
+    const token = await savedUser.getJWT();
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    });
+    res.json({ message: "User signed up successfully...!", data: savedUser });
   } catch (error) {
     res.status(400).send("ERROR : " + error.message);
   }
