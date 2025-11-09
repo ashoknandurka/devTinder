@@ -58,6 +58,7 @@ const userSchema = new mongoose.Schema(
     about: {
       type: String,
       maxLength: 500,
+      default: "This user hasn't added anything about themselves yet.",
     },
     skills: {
       type: [String],

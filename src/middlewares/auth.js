@@ -5,12 +5,12 @@ const userAuth = async (req, res, next) => {
   try {
     const { token } = req.cookies;
     if (!token) {
-      throw new Error("token is invalid...");
+      return res.status(401).send("Unauthorized: No token provided");
     }
     const decoded = jwt.verify(token, "devTinder@123");
     const user = await User.findById(decoded._id);
     if (!user) {
-      throw new Error("user not found");
+      return res.status(404).send("User not found");
     }
     req.user = user;
     next();
